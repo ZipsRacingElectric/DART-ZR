@@ -1,3 +1,12 @@
+// DARTOS Init-System ---------------------------------------------------------------------------------------------------------
+//
+// Author: Cole Barach
+// Date: Created: 2026.01.20
+//
+// Description: TODO(Barach)
+
+// Includes -------------------------------------------------------------------------------------------------------------------
+
 // POSIX
 #include <unistd.h>
 #include <sys/wait.h>
@@ -7,62 +16,83 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-bool terminate = false;
+// Constants ------------------------------------------------------------------------------------------------------------------
 
-void sigtermHandler (int sig)
-{
-	(void) sig;
+#define STDIO_PREFIX "[DARTOS INIT-SYSTEM] "
 
-	printf ("Terminating...\n");
-	terminate = true;
-}
+// Entrypoints ----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
-	printf ("Executing '%s'.\n", argv [1]);
+	size_t processCount = argc - 1;
+	char** processPathes = argv + 1;
 
-	pid_t pid = fork ();
-	if (pid == 0)
-		execv (argv [1], argv + 1);
-
-	if (signal (SIGTERM, sigtermHandler) == SIG_ERR)
+	pid_t* pids = malloc (sizeof (pid_t) * processCount);
+	if (pids == NULL)
 	{
-		int code = errno;
-		fprintf (stderr, "Warning: Failed to bind SIGTERM handler: %s.\n", strerror (code));
-		errno = 0;
+		perror ("Failed to allocate process PIDs");
+		return -1;
 	}
 
-	if (signal (SIGINT, sigtermHandler) == SIG_ERR)
+	for (size_t index = 0; index < processCount; ++index)
 	{
-		int code = errno;
-		fprintf (stderr, "Warning: Failed to bind SIGINT handler: %s.\n", strerror (code));
-		errno = 0;
+		printf (STDIO_PREFIX "Executing process '%s'.\n", processPathes [index]);
+		pids [index] = fork ();
+		if (pids [index] == 0)
+		{
+			char* argv [] = { processPathes [index], NULL };
+			execvp (processPathes [index], argv);
+			int code = errno;
+			fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", processPathes [index], strerror (code));
+			free (pids);
+			return errno;
+		}
 	}
 
-	sleep (1);
+	nanosleep (&(struct timespec) { .tv_nsec = 10000000 }, NULL);
 
-	if (waitpid (pid, NULL, WNOHANG | WUNTRACED) != 0)
+	for (size_t index = 0; index < processCount; ++index)
 	{
-		fprintf (stderr, "Warning: '%s' terminated early.\n", argv [1]);
+		if (waitpid (pids [index], NULL, WNOHANG) != 0)
+		{
+			fprintf (stderr, STDIO_PREFIX "Warning: Process '%s' terminated early.\n", processPathes [index]);
+			pids [index] = 0;
+		}
 	}
 
-	while (!terminate);
+	while (fgetc (stdin) != 'q');
+	printf (STDIO_PREFIX "Terminating...\n");
 
-	if (kill (pid, SIGTERM) != 0)
+	struct timespec timeStart;
+	clock_gettime (CLOCK_MONOTONIC, &timeStart);
+
+	for (size_t index = 0; index < processCount; ++index)
 	{
-		int code = errno;
-		fprintf (stderr, "Warning: Failed to kill process: %s.\n", strerror (code));
-		errno = 0;
+		if (pids [index] != 0)
+		{
+			if (kill (pids [index], SIGTERM) != 0)
+			{
+				int code = errno;
+				fprintf (stderr, STDIO_PREFIX "Failed to kill process '%s': %s.\n", processPathes [index], strerror (code));
+				errno = 0;
+			}
+		}
 	}
 
-    if (waitpid (pid, NULL, WUNTRACED) == -1)
-	{
-		int code = errno;
-		fprintf (stderr, "Warning failed to wait for program termination: %s.\n", strerror (code));
-		errno = 0;
-	}
+	// Block until all child processes have terminated.
+	while (!(wait (NULL) == -1 && errno == ECHILD));
 
+	free (pids);
 
+	struct timespec timeEnd;
+	clock_gettime (CLOCK_MONOTONIC, &timeEnd);
+
+	float timeDiff = (timeEnd.tv_sec - timeStart.tv_sec) * 1e3f + (timeEnd.tv_nsec - timeStart.tv_nsec) * 1e-6f;
+
+	printf (STDIO_PREFIX "All processes terminated in %f ms.\n", timeDiff);
+	return 0;
 }
