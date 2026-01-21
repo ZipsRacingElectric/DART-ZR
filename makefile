@@ -15,7 +15,7 @@ $(BIN_DIR)/%.sh: $(SRC_DIR)/%.sh
 
 $(C_BIN): $(C_SRC)
 	mkdir -p $(BIN_DIR)
-	gcc $^ -o $@
+	gcc $^ -o $@ -lgpiod
 
 clean:
 	rm -rf $(BIN_DIR)
