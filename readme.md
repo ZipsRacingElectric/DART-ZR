@@ -7,7 +7,12 @@ This project can only be installed on a Raspberry Pi running Raspberry Pi OS, si
 
 ## Software Architecture
 
-TODO(Barach)
+The system's software is divided into 3 core applications:
+- The dashboard graphical user interface (GUI)
+- The data logging application
+- The init-system application
+
+With this design, the GUI and data logger are completely independent and portable, meaning development can be done independent of the system’s hardware. The responsibilities and details of these applications is discussed below.
 
 ![doc/software_architecture.png](doc/software_architecture.png)
 
