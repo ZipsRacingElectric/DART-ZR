@@ -1,5 +1,9 @@
 # CAN Bus Configuration
 
+## SocketCAN Kernel Modules
+
+Most CAN bus drivers in Linux are implemented via the SocketCAN interface. This interface is exposed via the `can`, `can_dev`, and `can_raw` kernel modules. In order to use the SocketCAN interface, said kernel modules must either be statically linked into the kernel during compilation or dynamically loaded into the kernel at runtime. Fortunately, the kernel distributed with the base RPi OS image appears to have these modules included by default.
+
 ## Electrical Configuration
 
 Electrically, the DART's CAN interface is implemented using the MCP25625 integrated circuit. This IC is a combination CAN controller and CAN transceiver, meaning it allows devices to directly connect to a CAN bus via its SPI interface.

@@ -12,6 +12,9 @@ mmdebstrap:
   packages:
     - cage
     - chromium
+    - libgtk-4-1
+    - iproute2
+    - can-utils
   customize-hooks:
     - |
       export DART_USER="$IGconf_device_user1"
