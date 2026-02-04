@@ -1,0 +1,18 @@
+# METABEGIN
+# X-Env-Layer-Name: dhcp-server
+# X-Env-Layer-Category: dart
+# X-Env-Layer-Desc: TODO(Barach)
+#
+# TODO(Barach): IP / dev as variable?
+#
+# X-Env-VarPrefix: dhcp_server
+#
+# METAEND
+---
+mmdebstrap:
+  packages:
+    - network-manager
+    - dnsmasq
+  customize-hooks:
+    - uchroot "$1" 'nmcli dev mod eth0 ipv4.method manual ipv4.addr "192.168.0.1/24"'
+    - cp dnsmasq.conf $1/etc/

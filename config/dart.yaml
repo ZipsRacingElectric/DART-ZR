@@ -18,6 +18,8 @@ layer:
   device: dart-device
   software: zre-cantools
   splash: rpi-splash-screen
+  dhcp: dhcp-server
+  ssh: ssh-server
 
 # TODO(Barach): Fill in path
 zre_cantools:

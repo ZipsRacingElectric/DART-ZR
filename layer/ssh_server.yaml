@@ -1,0 +1,14 @@
+# METABEGIN
+# X-Env-Layer-Name: ssh-server
+# X-Env-Layer-Category: dart
+# X-Env-Layer-Desc: TODO(Barach)
+#
+# X-Env-VarPrefix: ssh
+#
+# METAEND
+---
+mmdebstrap:
+  packages:
+    - ssh
+  customize-hooks:
+    - $BDEBSTRAP_HOOKS/enable-units "$1" ssh
