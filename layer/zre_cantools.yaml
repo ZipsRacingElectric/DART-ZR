@@ -1,0 +1,27 @@
+# METABEGIN
+# X-Env-Layer-Name: zre-cantools
+# X-Env-Layer-Category: dart
+# X-Env-Layer-Desc: TODO(Barach)
+#
+# X-Env-VarPrefix: zre_cantools
+#
+# X-Env-Var-path:
+# X-Env-Var-path-Desc: TODO(Barach)
+# X-Env-Var-path-Required: y
+# X-Env-Var-path-Valid: string
+# X-Env-Var-path-Set: y
+#
+# METAEND
+---
+mmdebstrap:
+  packages:
+    - gcc
+    - make
+    - libncurses-dev
+    - libgtk-4-dev
+  customize-hooks:
+    - |
+      cp -r $IGconf_zre_cantools_path/ $1/home/zre/
+      uchroot "$1" 'sudo chown -R zre /home/zre/zre_cantools/'
+      uchroot "$1" 'make -B -C /home/zre/zre_cantools/'
+      uchroot "$1" 'sudo env --chdir=/home/zre/zre_cantools sh install.sh'
