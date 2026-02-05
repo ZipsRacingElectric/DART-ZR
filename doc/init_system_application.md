@@ -26,3 +26,5 @@ In file `/etc/udev/rules.d/60-gpio.rules`
 # TODO(Barach): Docs
 SUBSYSTEM=="gpio", KERNEL=="gpiochip[0-4]", GROUP="gpio", MODE="0660"
 ```
+
+Referenced from: https://www.udoo.org/forum/threads/gpio-permissions-for-libgpiod-sudo-or-not.32453/
