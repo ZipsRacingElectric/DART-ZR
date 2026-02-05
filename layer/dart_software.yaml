@@ -11,10 +11,15 @@
 mmdebstrap:
   packages:
     - cage
+    - libgpiod-dev
   customize-hooks:
     - |
       cp -r ./src/init_system/ $1/home/zre/
       uchroot "$1" 'sudo chown -R zre /home/zre/init_system/'
       uchroot "$1" 'make -B -C /home/zre/init_system/'
-      cp rootfs/systemd/system/init_system.service $1/etc/systemd/system/init_system.service
+      cp rootfs/etc/systemd/system/init_system.service $1/etc/systemd/system/init_system.service
     - $BDEBSTRAP_HOOKS/enable-units "$1" init_system
+    - |
+      uchroot "$1" 'sudo groupadd -r gpio'
+      uchroot "$1" 'sudo usermod -aG gpio zre'
+      cp rootfs/etc/udev/rules.d/60-gpio.rules $1/etc/udev/rules.d
