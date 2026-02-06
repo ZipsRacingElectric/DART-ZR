@@ -7,11 +7,12 @@ device:
   user1pass: GoZipsFall2023!!
 
 include:
-  file: trixie-minbase-ab.yaml
+  file: trixie-minbase.yaml
 
 image:
   # TODO(Barach): Resize this
-  system_part_size: 2500M
+  boot_part_size: 200%
+  root_part_size: 300%
   name: dart_os
 
 layer:
