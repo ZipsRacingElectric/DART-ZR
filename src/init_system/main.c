@@ -8,6 +8,7 @@
 // Includes -------------------------------------------------------------------------------------------------------------------
 
 // Includes
+#include "init_system_stdio.h"
 #include "shutdown_interrupt.h"
 
 // POSIX
@@ -22,108 +23,197 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
 
-// Constants ------------------------------------------------------------------------------------------------------------------
+// Functions ------------------------------------------------------------------------------------------------------------------
 
-#define STDIO_PREFIX "[DART-OS INIT-SYSTEM] "
-
-// Entrypoints ----------------------------------------------------------------------------------------------------------------
-
-int main (int argc, char** argv)
+/**
+ * @brief Converts a GPIO line string into a GPIO line number.
+ * @param str The string to convert.
+ * @return The line number, if successful, -1 otherwise.
+ */
+int getGpioLine (char* str)
 {
-	if (argc < 2)
-	{
-		fprintf (stderr, "Invalid usage. Usage: init-system <Pre-Execution Application> <Application 0> <Application 1> ...\n");
+	char* end;
+	unsigned long line = strtoul (str, &end, 0);
+	if (end == str)
 		return -1;
-	}
 
-	char* initProcess = argv [1];
+	if (line > UINT_MAX)
+		return -1;
+
+	return line;
+}
+
+/**
+ * @brief Executes and waits for the termination of a pre-execution application.
+ * @param preExecApplication The application to run.
+ * @return 0 if successful, the error code otherwise.
+ */
+int execPreExecApplication (char* preExecApplication)
+{
+	// Executure the pre-exec application
 	pid_t initPid = fork ();
 	if (initPid == 0)
 	{
-		char* argv [] = { initProcess, NULL };
-		execvp (initProcess, argv);
+		char* argv [] = { preExecApplication, NULL };
+		execvp (preExecApplication, argv);
+
+		// execvp only returns on failure.
 		int code = errno;
-		fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", initProcess, strerror (code));
+		fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", preExecApplication, strerror (code));
 		return errno;
 	}
 
 	waitpid (initPid, NULL, 0);
 
-	size_t processCount = argc - 2;
-	char** processPathes = argv + 2;
+	return 0;
+}
 
-	shutdownInterrupt_t interrupt;
-
-	if (shutdownInterruptInit (&interrupt, "init-system", "gpiochip0", 21) != 0)
-		return errno;
-
-	pid_t* pids = malloc (sizeof (pid_t) * processCount);
-	if (pids == NULL)
+/**
+ * @brief Executes an array of applications. Note this does not wait for application termination.
+ * @param applicationPathes The array containing the path of each application to execute.
+ * @param applicationPids The array to write to PID of each application into.
+ * @param applicationCount The size of @c applicationPathes and @c applicationPids .
+ */
+void execApplications (char** applicationPathes, pid_t* applicationPids, size_t applicationCount)
+{
+	for (size_t index = 0; index < applicationCount; ++index)
 	{
-		perror ("Failed to allocate process PIDs");
-		return -1;
-	}
-
-	for (size_t index = 0; index < processCount; ++index)
-	{
-		printf (STDIO_PREFIX "Executing process '%s'.\n", processPathes [index]);
-		pids [index] = fork ();
-		if (pids [index] == 0)
+		printf (STDIO_PREFIX "Executing application '%s'.\n", applicationPathes [index]);
+		applicationPids [index] = fork ();
+		if (applicationPids [index] == 0)
 		{
-			char* argv [] = { processPathes [index], NULL };
-			execvp (processPathes [index], argv);
+			char* argv [] = { applicationPathes [index], NULL };
+			execvp (applicationPathes [index], argv);
 			int code = errno;
-			fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", processPathes [index], strerror (code));
-			free (pids);
-			return errno;
+
+			// execvp only returns on failure.
+			// - Note: This is in the context of the child application, not the init-system itself, so we cannot allow the
+			//   process to keep running.
+			fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", applicationPathes [index], strerror (code));
+			free (applicationPids);
+			exit (errno);
 		}
 	}
+}
 
-	nanosleep (&(struct timespec) { .tv_nsec = 10000000 }, NULL);
-
-	for (size_t index = 0; index < processCount; ++index)
+/**
+ * @brief Checks the status of an array of applications, printing a warning on an early termination.
+ * @param applicationPathes The array containing the path of each application to check.
+ * @param applicationPids The array containing the PID of each application to check.
+ * @param applicationCount The size of @c applicationPathes and @c applicationPids .
+ */
+void checkApplications (char** applicationPathes, pid_t* applicationPids, size_t applicationCount)
+{
+	// Check if each individual application has exited
+	for (size_t index = 0; index < applicationCount; ++index)
 	{
-		if (waitpid (pids [index], NULL, WNOHANG) != 0)
+		if (waitpid (applicationPids [index], NULL, WNOHANG) != 0)
 		{
-			fprintf (stderr, STDIO_PREFIX "Warning: Process '%s' terminated early.\n", processPathes [index]);
-			pids [index] = 0;
+			fprintf (stderr, STDIO_PREFIX "Warning: Process '%s' terminated early.\n", applicationPathes [index]);
+			applicationPids [index] = 0;
 		}
 	}
+}
 
-	shutdownInterruptPoll (&interrupt);
-
-	printf (STDIO_PREFIX "Terminating...\n");
-
-	struct timespec timeStart;
-	clock_gettime (CLOCK_MONOTONIC, &timeStart);
-
-	for (size_t index = 0; index < processCount; ++index)
+/**
+ * @brief Terminates an array of applications.
+ * @param applicationPathes The array containing the path of each application to terminate.
+ * @param applicationPids The array containing the PID of each application to terminate.
+ * @param applicationCount The size of @c applicationPathes and @c applicationPids .
+ */
+void terminateApplications (char** applicationPathes, pid_t* applicationPids, size_t applicationCount)
+{
+	// Send the termination signal to each application
+	for (size_t index = 0; index < applicationCount; ++index)
 	{
-		if (pids [index] != 0)
+		if (applicationPids [index] != 0)
 		{
-			if (kill (pids [index], SIGTERM) != 0)
+			if (kill (applicationPids [index], SIGTERM) != 0)
 			{
 				int code = errno;
-				fprintf (stderr, STDIO_PREFIX "Failed to kill process '%s': %s.\n", processPathes [index], strerror (code));
+				fprintf (stderr, STDIO_PREFIX "Failed to terminate process '%s': %s.\n", applicationPathes [index], strerror (code));
 				errno = 0;
 			}
 		}
 	}
 
-	// Block until all child processes have terminated.
+	// Block until all child applications have terminated.
 	while (!(wait (NULL) == -1 && errno == ECHILD));
+}
 
-	free (pids);
+// Entrypoints ----------------------------------------------------------------------------------------------------------------
 
+int main (int argc, char** argv)
+{
+	// Validate the application usage.
+	if (argc < 4)
+	{
+		fprintf (stderr, "Invalid usage. Usage: init-system <GPIO Chip> <GPIO Line> <Pre-Execution Application> <Application 0> <Application 1> ...\n");
+		return -1;
+	}
+
+	// Get the GPIO chip and GPIO line from standard arguments.
+	char* gpioChip = argv [1];
+	char* gpioLineStr = argv [2];
+	int gpioLine = getGpioLine (gpioLineStr);
+	if (gpioLine < 0)
+	{
+		fprintf (stderr, STDIO_PREFIX "Invalid GPIO line '%s'.\n", gpioLineStr);
+		return EINVAL;
+	}
+
+	// Initialize the shutdown interrupt GPIO. When the device is powering down, this will trigger the init-system to terminate
+	// all child applications.
+	shutdownInterrupt_t* interrupt = shutdownInterruptInit ("init-system", "gpiochip0", gpioLine);
+	if (interrupt == NULL)
+		return errno;
+
+	// Execute the pre-exec application.
+	execPreExecApplication (argv [3]);
+
+	// Get the number of applications to execute and their pathes
+	size_t applicationCount = argc - 4;
+	char** applicationPathes = argv + 4;
+
+	// Allocate an array for storing the application PIDs.
+	pid_t* applicationPids = malloc (sizeof (pid_t) * applicationCount);
+	if (applicationPids == NULL)
+	{
+		perror (STDIO_PREFIX "Failed to allocate application PIDs");
+		return errno;
+	}
+
+	// Execute the applications, wait briefly, then check for any early terminations.
+	execApplications (applicationPathes, applicationPids, applicationCount);
+	nanosleep (&(struct timespec) { .tv_nsec = 10000000 }, NULL);
+	checkApplications (applicationPathes, applicationPids, applicationCount);
+
+	// Wait for the shutdown interrupt to indicate the device is shutting down.
+	if (shutdownInterruptPoll (interrupt) != 0)
+	{
+		perror (STDIO_PREFIX "Failed to poll shutdown interrupt");
+		return errno;
+	}
+	printf (STDIO_PREFIX "Terminating...\n");
+
+	// Time the shutdown sequence
+	struct timespec timeStart;
+	clock_gettime (CLOCK_MONOTONIC, &timeStart);
+
+	// Terminate all the remaining applications
+	terminateApplications (applicationPathes, applicationPids, applicationCount);
+	free (applicationPids);
+
+	// Finish timing and print to stdout
 	struct timespec timeEnd;
 	clock_gettime (CLOCK_MONOTONIC, &timeEnd);
-
 	float timeDiff = (timeEnd.tv_sec - timeStart.tv_sec) * 1e3f + (timeEnd.tv_nsec - timeStart.tv_nsec) * 1e-6f;
-
 	printf (STDIO_PREFIX "All processes terminated in %f ms.\n", timeDiff);
 
-	shutdownInterruptDealloc (&interrupt);
+	// Release the shutdown GPIO
+	shutdownInterruptDealloc (interrupt);
 
 	return 0;
 }
