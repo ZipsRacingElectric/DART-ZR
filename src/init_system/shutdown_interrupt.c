@@ -150,8 +150,8 @@ shutdownInterrupt_t* shutdownInterruptInit (const char* consumer, const char* ch
 		return NULL;
 	}
 
-	// Only 1 GPIO, at offset 0.
-	interrupt->offsets [0] = 0;
+	// Offset array contains the array of lines to request. Here we only want 1.
+	interrupt->offsets [0] = lineNumber;
 
 	// Add the GPIO line settings to the GPIO line config
 	if (gpiod_line_config_add_line_settings (lineConfig, interrupt->offsets, sizeof (interrupt->offsets) / sizeof (unsigned int), lineSettings) != 0)
