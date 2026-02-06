@@ -3,7 +3,7 @@
 // Author: Cole Barach
 // Date: Created: 2026.01.20
 //
-// Description: TODO(Barach)
+// Description: See doc/init_system_application.md for more details.
 
 // Includes -------------------------------------------------------------------------------------------------------------------
 
@@ -46,22 +46,22 @@ int getGpioLine (char* str)
 }
 
 /**
- * @brief Executes and waits for the termination of a pre-execution application.
- * @param preExecApplication The application to run.
+ * @brief Executes and waits for the termination of a pre-execution / post-execution application.
+ * @param application The application to run.
  * @return 0 if successful, the error code otherwise.
  */
-int execPreExecApplication (char* preExecApplication)
+int execPrePostExecApplication (char* application)
 {
 	// Executure the pre-exec application
 	pid_t initPid = fork ();
 	if (initPid == 0)
 	{
-		char* argv [] = { preExecApplication, NULL };
-		execvp (preExecApplication, argv);
+		char* argv [] = { application, NULL };
+		execvp (application, argv);
 
 		// execvp only returns on failure.
 		int code = errno;
-		fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", preExecApplication, strerror (code));
+		fprintf (stderr, STDIO_PREFIX "Failed to execute process '%s': %s.\n", application, strerror (code));
 		return errno;
 	}
 
@@ -148,9 +148,10 @@ void terminateApplications (char** applicationPathes, pid_t* applicationPids, si
 int main (int argc, char** argv)
 {
 	// Validate the application usage.
-	if (argc < 4)
+	if (argc < 5)
 	{
-		fprintf (stderr, "Invalid usage. Usage: init-system <GPIO Chip> <GPIO Line> <Pre-Execution Application> <Application 0> <Application 1> ...\n");
+		fprintf (stderr, "Invalid usage. Usage: init-system <GPIO Chip> <GPIO Line> <Pre-Execution Application> "
+			"<Post-Execution Application> <Application 0> <Application 1> ...\n");
 		return -1;
 	}
 
@@ -171,11 +172,11 @@ int main (int argc, char** argv)
 		return errno;
 
 	// Execute the pre-exec application.
-	execPreExecApplication (argv [3]);
+	execPrePostExecApplication (argv [3]);
 
 	// Get the number of applications to execute and their pathes
-	size_t applicationCount = argc - 4;
-	char** applicationPathes = argv + 4;
+	size_t applicationCount = argc - 5;
+	char** applicationPathes = argv + 5;
 
 	// Allocate an array for storing the application PIDs.
 	pid_t* applicationPids = malloc (sizeof (pid_t) * applicationCount);
@@ -214,6 +215,9 @@ int main (int argc, char** argv)
 
 	// Release the shutdown GPIO
 	shutdownInterruptDealloc (interrupt);
+
+	// Execute the post-exec application.
+	execPrePostExecApplication (argv [4]);
 
 	return 0;
 }
