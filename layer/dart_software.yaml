@@ -24,3 +24,4 @@ mmdebstrap:
       uchroot "$1" 'sudo groupadd -r gpio'
       uchroot "$1" 'sudo usermod -aG gpio zre'
       cp rootfs/etc/udev/rules.d/60-gpio.rules $1/etc/udev/rules.d/
+    - mkdir $1/home/zre/mdf/
