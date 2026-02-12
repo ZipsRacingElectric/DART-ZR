@@ -20,10 +20,14 @@ layer:
   software: dart-software
   splash: rpi-splash-screen
   dhcp: dhcp-server
-  ssh: ssh-server
+  ssh: openssh-server
 
 zre_cantools:
   path: ./src/zre_cantools/
+
+ssh:
+  pubkey_user1: ./keys/id_rsa.pub
+  pubkey_only: y
 
 splash:
   image_path: ${@SRCROOT}/splash.tga
