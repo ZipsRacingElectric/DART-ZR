@@ -4,9 +4,9 @@ Description=DART Init-System Service
 [Service]
 User=root
 TTYPath=/dev/tty1
-Environment="XDG_RUNTIME_DIR=/home/zre/"
-Environment="ZRE_CANTOOLS_DIR=/home/zre/zre_cantools"
-ExecStart=/home/zre/init_system/bin/init-system gpiochip0 21 /home/zre/init_system/bin/pre-exec.sh /home/zre/init_system/bin/post-exec.sh /home/zre/init_system/bin/exec-can-mdf-logger.sh /home/zre/init_system/bin/exec-dashboard-gui-jk.sh
+Environment="XDG_RUNTIME_DIR=/root/"
+Environment="ZRE_CANTOOLS_DIR=/root/zre_cantools"
+ExecStart=/root/init_system/bin/init-system gpiochip0 21 /root/init_system/bin/pre-exec.sh /root/init_system/bin/post-exec.sh /root/init_system/bin/exec-can-mdf-logger.sh /root/init_system/bin/exec-dashboard-gui-jk.sh
 StandardError=journal
 
 [Install]

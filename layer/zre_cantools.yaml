@@ -21,8 +21,7 @@ mmdebstrap:
     - libgtk-4-dev
   customize-hooks:
     - |
-      cp -r $IGconf_zre_cantools_path/ $1/home/zre/
-      uchroot "$1" 'sudo chown -R zre /home/zre/zre_cantools/'
+      cp -r $IGconf_zre_cantools_path/ $1/root/
       uchroot "$1" 'make -B -C /home/zre/zre_cantools/'
-      uchroot "$1" 'sudo env --chdir=/home/zre/zre_cantools sh install.sh'
+      uchroot "$1" 'sudo env --chdir=/root/zre/zre_cantools sh install.sh'
       cp $IGconf_zre_cantools_path/font/* $1/usr/share/fonts/

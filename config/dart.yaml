@@ -3,7 +3,7 @@ device:
   # DART is isolated from the Internet and the password is meant to be common knowledge.
   # Also note there appear to be security requirements enabled that disallow this password being simpler. Note sure how to
   # disable.
-  user1: zre
+  user1: root
   user1pass: GoZipsFall2023!!
 
 include:
@@ -27,7 +27,6 @@ zre_cantools:
 
 ssh:
   pubkey_user1: ./keys/id_rsa.pub
-  pubkey_only: y
 
 splash:
   image_path: ${@SRCROOT}/splash.tga
