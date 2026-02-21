@@ -4,8 +4,11 @@ Description=DART Init-System Service
 [Service]
 User=root
 TTYPath=/dev/tty1
+# TODO(Barach): Too many here, try envsub?
 Environment="XDG_RUNTIME_DIR=/root/"
 Environment="ZRE_CANTOOLS_DIR=/root/zre_cantools"
+Environment="ZRE_CANTOOLS_LOGGING_DIR=/root/zre"
+EnvironmentFile=/root/init_system/init_system.env
 ExecStart=/root/init_system/bin/init-system gpiochip0 21 /root/init_system/bin/pre-exec.sh /root/init_system/bin/post-exec.sh /root/init_system/bin/exec-can-mdf-logger.sh /root/init_system/bin/exec-dashboard-gui.sh
 StandardError=journal
 

@@ -17,7 +17,6 @@ mmdebstrap:
     - |
       cp -r ./src/init_system/ $1/root/
       uchroot "$1" 'make -B -C /root/init_system/'
-      cp rootfs/etc/systemd/system/init_system.service $1/etc/systemd/system/init_system.service
-      cp rootfs/etc/systemd/system/init_system_jk.service $1/etc/systemd/system/init_system_jk.service
+    - cp rootfs/etc/systemd/system/init_system.service $1/etc/systemd/system/init_system.service
     - $BDEBSTRAP_HOOKS/enable-units "$1" init_system
-    - mkdir $1/root/mdf/
+    - mkdir $1/root/zre/
