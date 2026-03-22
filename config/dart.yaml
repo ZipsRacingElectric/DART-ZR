@@ -27,4 +27,4 @@ ssh:
   pubkey_user1: ./keys/id_rsa.pub
 
 splash:
-  image_path: ${@SRCROOT}/splash.tga
+  image_path: ./resources/boot_screen.tga
