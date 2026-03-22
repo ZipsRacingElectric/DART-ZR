@@ -29,7 +29,8 @@ mmdebstrap:
     - chroot "$1" /bin/sh -c 'make -B -C /root/zre_cantools/'
 
     # Run ZRE-CAN-Tools' installer.
-    - chroot "$1" /bin/sh -c 'sudo env --chdir=/root/zre_cantools sh install.sh'
+    # TODO(Barach): Permanently remove?
+    # - chroot "$1" /bin/sh -c 'sudo env --chdir=/root/zre_cantools sh install.sh'
 
     # Install required fonts.
     - cp $IGconf_zre_cantools_path/font/* $1/usr/share/fonts/

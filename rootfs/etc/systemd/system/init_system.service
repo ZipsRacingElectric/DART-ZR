@@ -8,15 +8,7 @@ After=multi-user.target
 User=root
 TTYPath=/dev/tty1
 
-Environment="XDG_RUNTIME_DIR=/root/"
-
-# ZRE-CAN-Tools
-# TODO(Barach): envsub?
-Environment="ZRE_CANTOOLS_DIR=/root/zre_cantools"
-Environment="ZRE_CANTOOLS_LOGGING_DIR=/root/zre"
-
-# This variable determines what vehicle the DART is configured for.
-Environment="DART_CONFIG=/root/zre_cantools/config/zr25/vehicle"
+EnvironmentFile=/root/init_system/init_system.env
 
 ExecStart=/root/init_system/bin/init-system gpiochip0 27 /root/init_system/bin/pre-exec.sh /root/init_system/bin/post-exec.sh /root/init_system/bin/exec-can-mdf-logger.sh /root/init_system/bin/exec-dashboard-gui.sh
 StandardError=journal
