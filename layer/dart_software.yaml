@@ -37,9 +37,8 @@ mmdebstrap:
     - cp rootfs/etc/systemd/system/init_system.service $1/etc/systemd/system/init_system.service
     - $BDEBSTRAP_HOOKS/enable-units "$1" init_system
 
-    # Install the init-system's profile file
-    - cp rootfs/etc/profile.d/init_system.sh $1/etc/profile.d/
-    - chroot "$1" /bin/sh -c 'chmod +x /etc/profile.d/init_system.sh'
+    # Install the init-system's environment file
+    - cp rootfs/etc/environment $1/etc/
 
     # Create the data logging destination directory.
     - mkdir $1/root/zre/
