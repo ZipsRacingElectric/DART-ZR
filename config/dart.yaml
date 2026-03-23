@@ -16,6 +16,7 @@ layer:
   dhcp: dhcp-server
   ssh: openssh-server
   rrp: rpi-root-password
+  rrfs: resize-root-fs
 
 zre_cantools:
   path: ./src/zre_cantools/
