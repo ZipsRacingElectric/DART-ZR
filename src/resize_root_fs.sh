@@ -6,5 +6,5 @@ if [ ! -f /root/resize_root_fs_done ]; then
 	raspi-config --expand-rootfs
 	touch /root/resize_root_fs_done
 	sync
-	# reboot now
+	reboot now
 fi
