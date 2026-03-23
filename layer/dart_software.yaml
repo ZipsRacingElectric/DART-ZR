@@ -23,6 +23,7 @@ mmdebstrap:
 
     # Miscellaneous packages that are not required, but useful
     - fdisk
+    - git
     - htop
     - pcmanfm
     - dolphin-emu
