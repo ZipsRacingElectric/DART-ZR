@@ -1,0 +1,14 @@
+[Unit]
+Description=Resizes the root filesystem on first boot.
+After=local-fs.target
+Before=getty.target
+
+[Service]
+Type=oneshot
+ExecStart=/root/resize_root_fs.sh
+RemainAfterExit=yes
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

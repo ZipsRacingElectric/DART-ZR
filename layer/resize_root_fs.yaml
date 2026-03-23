@@ -1,0 +1,16 @@
+# METABEGIN
+# X-Env-Layer-Name: resize-root-fs
+# X-Env-Layer-Category: rpi
+# X-Env-Layer-Desc: Resizes the root filesystem on first boot.
+#
+# X-Env-VarPrefix: resize_root_fs
+#
+# METAEND
+---
+mmdebstrap:
+
+  customize-hooks:
+    - cp ./src/resize_root_fs.sh $1/root/
+    - chroot "$1" /bin/sh -c 'chmod +x /root/resize_root_fs.sh'
+    - cp ./rootfs/etc/systemd/system/resize_root_fs.service $1/etc/systemd/system/
+    - $BDEBSTRAP_HOOKS/enable-units "$1" resize_root_fs
