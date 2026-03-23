@@ -8,6 +8,8 @@ After=multi-user.target
 User=root
 TTYPath=/dev/tty1
 
+EnvironmentFile=/etc/environment
+
 ExecStart=/root/init_system/bin/init-system gpiochip0 27 /root/init_system/bin/pre-exec.sh /root/init_system/bin/post-exec.sh /root/init_system/bin/exec-can-mdf-logger.sh /root/init_system/bin/exec-dashboard-gui.sh
 StandardError=journal
 
