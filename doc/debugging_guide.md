@@ -17,7 +17,13 @@ From this point, all commands entered into the terminal are executed by the DART
 
 ### Via USB
 
-TODO(Barach): Not possible currently.
+If ethernet is not working, it is possible to perform debugging with a USB keyboard. This is a much less capable method of debugging, so it is only really useful in debugging ethernet issues.
+
+- If the dashboard-gui is open, close it using `F4`.
+- Login with the username `root` and password `zre`.
+	- You may need to backspace any characters in the field after closing the dashboard-gui.
+
+From this point, any commands can entered into the terminal to be executed by the DART. Note that (as of the time of writing this) the DART uses Bash for its interactive shell
 
 ## Determining the Problem
 
@@ -26,7 +32,7 @@ Most issues with the DART tend to manifest as either the dashboard-gui, the can-
 To determine what caused the application(s) to fail, the init-system's journal can be checked:
 
 `journalctl --no-pager -u init_system`
-- Or use the `j` option in the `dart-cli`.
+- Or use the `i` option in the `dart-cli`.
 
 ### Hardware Issues
 

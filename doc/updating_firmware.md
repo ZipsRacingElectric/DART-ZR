@@ -17,7 +17,7 @@ This command will move the DART's version of ZRE-CAN-Tools to a backup directory
 To update the init-system, the dart-cli can be used:
 
 ```
-dart-cli --update-zre-cantools=/path/to/init_system/
+dart-cli --update-init-system=/path/to/init_system/
 ```
 
 **Important: The directory being copied MUST be named "init_system", otherwise the process will fail.**
