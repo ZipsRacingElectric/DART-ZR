@@ -8,16 +8,26 @@ After acquiring this `.png` file, it can be converted to a `.tga` file using Ima
 
 ```
 magick resources/boot_screen.png \
+  -resize 800x480 \
   -background black \
   -gravity center \
+  -extent 800x480 \
   -depth 8 \
   -colors 224 \
   -type truecolor \
   resources/boot_screen.tga
 ```
 
+This file will be used next time an OS image is generated.
+
 ## Resolution
 
-Due to a bug in either the DART's display or the Linux kernel, the boot screen image does not render correctly during the system's boot. Rather, the image is both off-cented and cropped.
+Due to a bug in either the DART's display or the Linux kernel, the boot screen image does not render correctly during the system's boot. Rather, the image is both off-cented and cropped. To accomodate for this, the boot screen must be kept within the `usable_area` layer of the `.xcf` file.
 
-TODO(Barach): Grid reference?
+For example, this grid:
+
+![../resources/boot_grid.png](../resources/boot_grid.png)
+
+is mapped to:
+
+![../resources/boot_grid_actual.jpg](../resources/boot_grid_actual.jpg)
