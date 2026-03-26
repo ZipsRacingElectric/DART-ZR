@@ -52,6 +52,12 @@ Due to the large volume of the output, it is useful to use `grep` to filter for 
 
 While the kernel's message buffer can provide some insight, debugging with an oscilloscope or logic analyzer is often useful.
 
+For issues related to ethernet or SSH connections:
+
+- Use `ip addr` to validate whether the `eth0` link is online.
+- Use `journalctl -u dnsmasq` to determine whether any DHCP requests were received.
+- Use `journalctl -u ssh` to determine whether any SSH connections have been attempted.
+
 ### Software Issues
 
 For debugging software issues on the device, it is often useful to edit the firmware on the device. Before any changes can be made, the init-system, dashboard-gui, and can-mdf-logger must be stopped (if they are running). This can be done by:

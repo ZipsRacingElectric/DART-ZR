@@ -76,28 +76,11 @@ Note this process normally takes ~10 minutes.
 
 Once complete, the OS image can be found at `work/image-dart_os/dart_os.img`.
 
-### Flashing an OS image
+### Commissioning a DART System
 
-To flash an OS image to the CM5 system-on-module, the USB Type-C interface can be used.
+To commission a new DART system, see:
 
-This section will describe the process using the "DART Programmer" RPi and "DART Dev Board" hardware.
-
-- Unplug the DART Dev Board's power supply, if not already.
-- Set the "EMMC Boot" switch to "Disabled".
-- Connect a USB cable from the USB 3.0 Type-A port of the DART Programmer to the USB Type-C port of the DART Dev Board.
-- On the DART Programmer, run `sudo rpiboot`.
-- On the DART Programmer, run `sudo rpi-imager`.
-	- Select any RPi device (doesn't matter with a custom image)
-	- Select "Use custom" and navigate to the DART's `.img` file.
-	- Select the CM5 as the storage device.
-	- Confirm the writing.
-
-Note if you are just testing an image, the validation step can be skipped pretty safely. If you are flashing a CM5 for installing in a DART, **do not** skip the validation.
-
-To boot the SoM after flashing:
-- Unplug the USB Type-C cable from the DART Dev Board.
-- Set the "EMMC Boot" switch to "Enabled".
-- Plug in the DART Dev Board's power supply.
+[doc/commissioning_guide.md](doc/commissioning_guide.md)
 
 ### Updating Firmware
 
