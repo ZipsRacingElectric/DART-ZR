@@ -120,7 +120,6 @@ systemd[624]: Finished systemd-exit.service - Exit the Session.
 systemd[624]: Reached target exit.target - Exit the Session.
 systemd-journald[230]: Journal stopped
 
-
 ```
 
 Importantly, the journal must contain the lines:
@@ -131,3 +130,16 @@ Importantly, the journal must contain the lines:
 - `systemd-journald[230]: Journal stopped`
 
 If the journal is missing any of these, it indicates the device was not gracefully powered off. Debugging with an oscilloscope is likely required to determine the cause.
+
+## Device Configuration
+
+After the device is working as intended, the device can be configured for the system it is to be installed in. To do this, change the `DART_CONFIG` environment variable to point to the intended configuration directory.
+
+- Use `nano` to open the `/etc/environment` file.
+	- This can be done with the `m` option in the `dart-cli`.
+- Edit the line starting with `DART_CONFIG` to point to the intended config directory.
+
+For example, a DART configured for the charging cart of ZR26 would be:
+```
+DART_CONFIG=/root/zre_cantools/config/zr26/charger
+```
