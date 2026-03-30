@@ -27,8 +27,13 @@ mmdebstrap:
     - htop
     - pcmanfm
     - dolphin-emu
+    - lollypop
+    - vlc
+    - weston
+    - xorg
     - lwhw
     - libinput-tools
+    - xinput
 
   customize-hooks:
 
