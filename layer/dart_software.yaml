@@ -31,7 +31,7 @@ mmdebstrap:
     - vlc
     - weston
     - xorg
-    - lwhw
+    - lshw
     - libinput-tools
     - xinput
 
