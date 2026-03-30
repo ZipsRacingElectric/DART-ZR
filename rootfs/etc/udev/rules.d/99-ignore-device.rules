@@ -1,0 +1,3 @@
+ACTION!="remove", KERNEL=="event*", \
+	ATTRS{name}=="vc4-hdmi-*", \
+	ENV{LIBINPUT_IGNORE_DEVICE}="1"
