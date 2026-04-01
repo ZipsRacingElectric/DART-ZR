@@ -20,5 +20,9 @@ mmdebstrap:
 
   customize-hooks:
 
+    # Copy the device tree source onto the device and compile it.
+    - cp -r ./src/device_tree $1/root/
+    - chroot "$1" /bin/sh -c 'make -B -C /root/device_tree/'
+
     # Copy the bootloader configuration file. See doc/can_bus_configuration.md for details.
     - cp rootfs/boot/firmware/config.txt $1/boot/firmware/config.txt

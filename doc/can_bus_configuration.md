@@ -48,21 +48,36 @@ INT          | GPIO 16              | MCP25625 interrupt pin
 
 ## Software Configuration
 
-### Device Tree Overlay
+Drivers for CAN bus are implemented in the Linux kernel. In order to notify the kernel what hardware is present and how it is configured, the device tree must be configured. This configuration is done by enabling different hardware "overlays" to the device tree.
 
-The `/boot/firmware/config.txt` file is used to enable the desired device tree overlays. For the DART's configuration, the below lines can be appended to the end of this file:
+### Device Tree Overlays
+
+For `can0`, Raspberry Pi distributes an overlay that happens to be compatible with the DART's hardware. The source code for this overlay can be found at:
+
+https://github.com/raspberrypi/linux/blob/rpi-6.12.y/arch/arm/boot/dts/overlays/mcp2515-can0-overlay.dts
+
+For `can1`, unfortunately the DART's hardware does not match any overlays Raspberry Pi distributes. A custom device tree overlay can be created and placed in the `/boot/firmware/overlays` directory to allow it to be enabled. The source code for this overlay can be found below:
+
+[../src/device_tree/zre-can1.dts](../src/device_tree/zre-can1.dts)
+
+### Enabling Overlays
+
+The `/boot/firmware/config.txt` file is used to enable the desired device tree overlays.
+
+For the DART's configuration, the below lines can be appended to the end of this file:
 
 ```
 # Enable the SPI peripheral
 dtparam=spi=on
 
 # Enable the MCP25625 on SPI 0 (CS 8) as can0. Oscillator is 16MHz, interrupt
-# pin is GPIO 6, chip select is GPIO 8.
-dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=6,cs=8
+# pin is GPIO 6, chip select is GPIO 8 (default).
+dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=6
 
 # Enable the MCP25625 on SPI 1 (CS 18) as can1. Oscillator is 16MHz, interrupt
 # pin is GPIO 16, chip select is GPIO 18.
-dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=16,cs=18
+dtoverlay=spi1-1cs
+dtoverlay=zre-can1,oscillator=16000000,interrupt=16
 ```
 
 ## Debugging
