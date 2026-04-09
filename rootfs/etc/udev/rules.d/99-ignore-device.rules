@@ -1,3 +1,8 @@
+# From: https://wayland.freedesktop.org/libinput/doc/latest/device-configuration-via-udev.html
+
+# This rule tells libinput to ignore the NewHavenDisplay device from
+# enumerating as a mouse. Without this, a cursor will appear even when no
+# actual mouse is connected.
 ACTION!="remove", KERNEL=="event*", \
 	ATTRS{name}=="vc4-hdmi-*", \
 	ENV{LIBINPUT_IGNORE_DEVICE}="1"

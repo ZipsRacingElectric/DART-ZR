@@ -50,6 +50,3 @@ mmdebstrap:
 
     # Create the data logging destination directory.
     - mkdir $1/root/zre/
-
-    # Install udev rules
-    - cp rootfs/etc/udev/rules.d/* $1/etc/udev/rules.d/

@@ -26,3 +26,6 @@ mmdebstrap:
 
     # Copy the bootloader configuration file. See doc/can_bus_configuration.md for details.
     - cp rootfs/boot/firmware/config.txt $1/boot/firmware/config.txt
+
+    # Install udev rules
+    - cp rootfs/etc/udev/rules.d/* $1/etc/udev/rules.d/
