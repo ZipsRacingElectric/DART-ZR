@@ -251,6 +251,9 @@ int shutdownInterruptPoll (shutdownInterrupt_t* interrupt)
 		// Consume the events from the device to indicate they have been handled.
 		gpiod_line_request_read_edge_events (interrupt->lineRequest, eventBuffer, EVENT_BUFFER_CAPACITY);
 
+		// Wait for 5ms, then check the interrupt is still asserted.
+		usleep (5000);
+
 		// Read the state of the GPIO line to check it is still high (wasn't triggered by noise or something).
 		code = gpiod_line_request_get_value (interrupt->lineRequest, interrupt->offsets [0]);
 		if (code < 0)

@@ -73,6 +73,29 @@ int execPrePostExecApplication (char* application)
 }
 
 /**
+ * @brief Executes an application. Note this does not wait for application termination.
+ * @param path The path of the application to execute.
+ * @param pid Buffer to write the PID of the application into.
+ */
+void execApplication (char* path, pid_t* pid)
+{
+	printf (STDIO_PREFIX "Executing application '%s'.\n", path);
+	*pid = fork ();
+	if (*pid == 0)
+	{
+		char* argv [] = { path, NULL };
+		execvp (path, argv);
+		int code = errno;
+
+		// execvp only returns on failure.
+		// - Note: This is in the context of the child application, not the init-system itself, so we cannot allow the
+		//   process to keep running.
+		fprintf (stderr, STDIO_PREFIX "Failed to execute application '%s': %s.\n", path, strerror (code));
+		exit (errno);
+	}
+}
+
+/**
  * @brief Executes an array of applications. Note this does not wait for application termination.
  * @param applicationPathes The array containing the path of each application to execute.
  * @param applicationPids The array to write to PID of each application into.
@@ -81,22 +104,20 @@ int execPrePostExecApplication (char* application)
 void execApplications (char** applicationPathes, pid_t* applicationPids, size_t applicationCount)
 {
 	for (size_t index = 0; index < applicationCount; ++index)
-	{
-		printf (STDIO_PREFIX "Executing application '%s'.\n", applicationPathes [index]);
-		applicationPids [index] = fork ();
-		if (applicationPids [index] == 0)
-		{
-			char* argv [] = { applicationPathes [index], NULL };
-			execvp (applicationPathes [index], argv);
-			int code = errno;
+		execApplication (applicationPathes [index], &applicationPids [index]);
+}
 
-			// execvp only returns on failure.
-			// - Note: This is in the context of the child application, not the init-system itself, so we cannot allow the
-			//   process to keep running.
-			fprintf (stderr, STDIO_PREFIX "Failed to execute application '%s': %s.\n", applicationPathes [index], strerror (code));
-			free (applicationPids);
-			exit (errno);
-		}
+/**
+ * @brief Checks the status of an application, printing a warning on early termination.
+ * @param path The path of the application to check.
+ * @param pid The PID of the application to check. Set to 0 if the application has terminated.
+ */
+void checkApplication (char* path, pid_t* pid)
+{
+	if (waitpid (*pid, NULL, WNOHANG) != 0)
+	{
+		fprintf (stderr, STDIO_PREFIX "Warning: Process '%s' terminated early.\n", path);
+		*pid = 0;
 	}
 }
 
@@ -110,37 +131,54 @@ void checkApplications (char** applicationPathes, pid_t* applicationPids, size_t
 {
 	// Check if each individual application has exited
 	for (size_t index = 0; index < applicationCount; ++index)
+		checkApplication (applicationPathes [index], &applicationPids [index]);
+}
+
+/**
+ * @brief Sends the termination signal to an application.
+ * @param applicationPath The application path.
+ * @param applicationPid The application PID.
+ */
+void terminateApplication (char* applicationPath, pid_t* applicationPid)
+{
+	if (applicationPid != 0)
 	{
-		if (waitpid (applicationPids [index], NULL, WNOHANG) != 0)
+		if (kill (*applicationPid, SIGTERM) != 0)
 		{
-			fprintf (stderr, STDIO_PREFIX "Warning: Process '%s' terminated early.\n", applicationPathes [index]);
-			applicationPids [index] = 0;
+			int code = errno;
+			fprintf (stderr, STDIO_PREFIX "Failed to terminate process '%s': %s.\n", applicationPath, strerror (code));
+			errno = 0;
 		}
 	}
 }
 
 /**
- * @brief Terminates an array of applications.
- * @param applicationPathes The array containing the path of each application to terminate.
- * @param applicationPids The array containing the PID of each application to terminate.
- * @param applicationCount The size of @c applicationPathes and @c applicationPids .
+ * @brief Sends the kill signal to an application.
+ * @param applicationPath The application path.
+ * @param applicationPid The application PID.
  */
-void terminateApplications (char** applicationPathes, pid_t* applicationPids, size_t applicationCount, struct timespec* timeStart)
+void killApplication (char* applicationPath, pid_t* applicationPid)
 {
-	// Send the termination signal to each application
-	for (size_t index = 0; index < applicationCount; ++index)
+	if (applicationPid != 0)
 	{
-		if (applicationPids [index] != 0)
+		if (kill (*applicationPid, SIGKILL) != 0)
 		{
-			if (kill (applicationPids [index], SIGTERM) != 0)
-			{
-				int code = errno;
-				fprintf (stderr, STDIO_PREFIX "Failed to terminate process '%s': %s.\n", applicationPathes [index], strerror (code));
-				errno = 0;
-			}
+			int code = errno;
+			fprintf (stderr, STDIO_PREFIX "Failed to terminate process '%s': %s.\n", applicationPath, strerror (code));
+			errno = 0;
 		}
 	}
+}
 
+/**
+ * @brief Waits for an array of applications to terminate
+ * @param applicationPathes The array of applications to wait for.
+ * @param applicationPids The array of PIDs of each application.
+ * @param applicationCount The size of @c applicationPathes and @c applicationPids .
+ * @param timeStart The start of the termination sequence.
+ */
+void waitForApplicationTerminations (char** applicationPathes, pid_t* applicationPids, size_t applicationCount, struct timespec* timeStart)
+{
 	// Block until all child applications have terminated.
 	int pid;
 	do
@@ -161,15 +199,32 @@ void terminateApplications (char** applicationPathes, pid_t* applicationPids, si
 	} while (true);
 }
 
+/**
+ * @brief Terminates an array of applications.
+ * @param applicationPathes The array containing the path of each application to terminate.
+ * @param applicationPids The array containing the PID of each application to terminate.
+ * @param applicationCount The size of @c applicationPathes and @c applicationPids .
+ * @param timeStart The start of the termination sequence.
+ */
+void terminateApplications (char** applicationPathes, pid_t* applicationPids, size_t applicationCount, struct timespec* timeStart)
+{
+	// Send the termination signal to each application
+	for (size_t index = 0; index < applicationCount; ++index)
+		terminateApplication (applicationPathes [index], &applicationPids [index]);
+
+	// Wait for the applications to terminate
+	waitForApplicationTerminations (applicationPathes, applicationPids, applicationCount, timeStart);
+}
+
 // Entrypoints ----------------------------------------------------------------------------------------------------------------
 
 int main (int argc, char** argv)
 {
 	// Validate the application usage.
-	if (argc < 5)
+	if (argc != 7)
 	{
 		fprintf (stderr, "Invalid usage. Usage: init-system <GPIO Chip> <GPIO Line> <Pre-Execution Application> "
-			"<Post-Execution Application> <Application 0> <Application 1> ...\n");
+			"<Post-Execution Application> <can-mdf-logger path> <dashboard-gui path>\n");
 		return -1;
 	}
 
@@ -201,22 +256,24 @@ int main (int argc, char** argv)
 	if (execPrePostExecApplication (argv [3]) != 0)
 		return errno;
 
-	// Get the number of applications to execute and their pathes
-	size_t applicationCount = argc - 5;
-	char** applicationPathes = argv + 5;
+	// Execute the applications.
 
-	// Allocate an array for storing the application PIDs.
-	pid_t* applicationPids = malloc (sizeof (pid_t) * applicationCount);
-	if (applicationPids == NULL)
-	{
-		perror (STDIO_PREFIX "Failed to allocate application PIDs");
-		return errno;
-	}
+	#define APPLICATION_COUNT 2
+	char** applicationsPathes = &argv [5];
+	pid_t applicationPids [APPLICATION_COUNT];
 
-	// Execute the applications, wait briefly, then check for any early terminations.
-	execApplications (applicationPathes, applicationPids, applicationCount);
+	char* canMdfLoggerPath = applicationsPathes [0];
+	pid_t* canMdfLoggerPid = &applicationPids [0];
+	execApplication (canMdfLoggerPath, canMdfLoggerPid);
+
+	char* dashboardGuiPath = applicationsPathes [1];
+	pid_t* dashboardGuiPid = &applicationPids [1];
+	execApplication (dashboardGuiPath, dashboardGuiPid);
+
+	// Wait briefly, then check for any early terminations
 	nanosleep (&(struct timespec) { .tv_nsec = 10000000 }, NULL);
-	checkApplications (applicationPathes, applicationPids, applicationCount);
+	checkApplication (canMdfLoggerPath, canMdfLoggerPid);
+	checkApplication (canMdfLoggerPath, canMdfLoggerPid);
 
 	// Wait for the shutdown interrupt to indicate the device is shutting down.
 	if (shutdownInterruptPoll (interrupt) != 0)
@@ -230,9 +287,12 @@ int main (int argc, char** argv)
 	struct timespec timeStart;
 	clock_gettime (CLOCK_MONOTONIC, &timeStart);
 
-	// Terminate all the remaining applications
-	terminateApplications (applicationPathes, applicationPids, applicationCount, &timeStart);
-	free (applicationPids);
+	// Terminate all the remaining applications.
+	// - Here we terminate the can-mdf-logger because it must stop gracefully, but we kill the dashboard-gui, because it does
+	//   not need to stop gracefully.
+	terminateApplication (canMdfLoggerPath, canMdfLoggerPid);
+	killApplication (dashboardGuiPath, dashboardGuiPid);
+	waitForApplicationTerminations (applicationsPathes, applicationPids, APPLICATION_COUNT, &timeStart);
 
 	// Release the shutdown GPIO
 	shutdownInterruptDealloc (interrupt);
