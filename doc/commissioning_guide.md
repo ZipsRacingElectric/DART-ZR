@@ -70,6 +70,8 @@ With the dashboard-gui functioning, touchscreen can be validated by attempting t
 
 The last hardware component to validate is the DART's hold-up circuitry. This is very important to validate, as data log corruption can occur otherwise.
 
+The hold-up circuitry can be tested without assembling the entire fixture, however, the display power must be connected in order to load the input power rail. **If the display power is not connected, the test will fail.**
+
 - Power cycle the DART:
 	- Shutdown the OS (`shutdown now`).
 	- Turn off the power supply for 30 seconds.
