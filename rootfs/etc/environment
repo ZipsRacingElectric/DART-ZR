@@ -1,10 +1,22 @@
-# Cage
+# Cage ------------------------------------------------------------------------
+
 XDG_RUNTIME_DIR=/root/
 
-# Init-system
-# - This variable determines what vehicle the DART is configured for.
+# Init-system -----------------------------------------------------------------
+
+# This variable determines what vehicle the DART is configured for.
 DART_CONFIG=/root/zre_cantools/config/zr26/vehicle
 
-# ZRE-CAN-Tools
+# The baudrate to initialize can0 to.
+DART_CAN0_BAUDRATE=1000000
+
+# The baudrate to initialize can1 to. Ignored if can1 is disabled.
+DART_CAN1_BAUDRATE=1000000
+
+# Enables / disables the can1 interface. 0 => disabled, 1 => enabled
+DART_CAN1_ENABLED=1
+
+# ZRE-CAN-Tools ---------------------------------------------------------------
+
 ZRE_CANTOOLS_DIR=/root/zre_cantools
 ZRE_CANTOOLS_LOGGING_DIR=/root/zre
