@@ -2,6 +2,10 @@
 
 Firmware and operating system creation tool for Zips Racing's DART data acquisition system.
 
+For a high level overview of the DART and its usage, see the *DART User Manual*, linked below:
+
+https://github.com/ZipsRacingElectric/ZRE-CAN-Tools/blob/main/doc/dart_user_manual.pdf
+
 ## Project Information
 
 This project can only be installed on a Raspberry Pi running Raspberry Pi OS, similar hardware, or a virtual machine. This is due to the fact that a 64-bit ARM compiler and Debian ARM packages are required to generate the OS image. For accessing pre-built images, see the [Releases](https://github.com/ZipsRacingElectric/ZRE-DARTOS/releases) section of this repository.
