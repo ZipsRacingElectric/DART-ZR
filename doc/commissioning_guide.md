@@ -2,8 +2,6 @@
 
 This guide details to process of setting up a DART system for use in a formula vehicle. This guide details specifically the software of the device, however testing and validation of important hardware is included in this guide.
 
-TODO(Barach): Ask Ethan about voltage rail testing or anything else before SoM installation.
-
 ## Flashing the System-on-Module
 
 In order to test the majority of the functionality of a DART's PCB, a programmed SoM must be installed.
@@ -13,6 +11,8 @@ To program, or "flash", a SoM, see the below guide:
 [som_flashing.md](som_flashing.md)
 
 ## Hardware Validation
+
+Before installing a SoM, the SoM's 5V rail should be measured to validate it is the correct voltage.
 
 After the SoM has been flashed and validated, it can be transferred to the DART's PCB.
 
@@ -144,4 +144,12 @@ After the device is working as intended, the device can be configured for the sy
 For example, a DART configured for the charging cart of ZR26 would be:
 ```
 DART_CONFIG=/root/zre_cantools/config/zr26/charger
+```
+
+Depending on the device configuration, the CAN bus configuration may also need modified (ex, to only use 1 CAN bus, or to use 500 kilobaud instead of 1 megabaud).
+
+```
+DART_CAN0_BAUDRATE - The baudrate of the can0 CAN bus, in bit/s.
+DART_CAN1_BAUDRATE - The baudrate of the can1 CAN bus, in bit/s (if enabled).
+DART_CAN1_ENABLED - Disables / enables the can1 CAN bus.
 ```

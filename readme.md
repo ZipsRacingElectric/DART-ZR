@@ -80,9 +80,11 @@ Note this process normally takes ~10 minutes.
 
 Once complete, the OS image can be found at `work/image-dart_os/dart_os.img`.
 
-### Commissioning a DART System
+### Assembling a DART System
 
-To commission a new DART system, see:
+When assembling a new DART system, refer to the assembly guide, found in the team's OneDrive (search for "DART Assembly Guide").
+
+This video will require a fully commissioned DART PCB. To commission a new DART PCB, see:
 
 [doc/commissioning_guide.md](doc/commissioning_guide.md)
 
